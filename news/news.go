@@ -7,6 +7,7 @@ import (
 	"github.com/cdipaolo/sentiment"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
+	"reality.rehab/pastrino/config"
 	"reality.rehab/pastrino/portfolio"
 )
 
@@ -47,7 +48,7 @@ func New() *NewsSentiment {
 	return ns
 }
 
-func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, links []string) {
+func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config) {
 	fp := gofeed.NewParser()
 
 	model, err := sentiment.Restore()
@@ -55,7 +56,7 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, links []string) {
 		panic(fmt.Sprintf("Could not restore sentiment analysis model!\n\t%v\n", err))
 	}
 
-	for _, l := range links {
+	for _, l := range config.Feeds {
 		feed, err := fp.ParseURL(l)
 		if err != nil {
 			fmt.Printf("Failed to read news feed: %s", l)
