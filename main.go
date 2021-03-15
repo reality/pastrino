@@ -1,8 +1,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 
 	"reality.rehab/pastrino/config"
 	"reality.rehab/pastrino/news"
@@ -27,10 +27,14 @@ func main() {
 
 	config := config.New("./config.json")
 
+	flag.StringVar(&config.T212File, "t212", "", "Specify a Trading212 transaction history file.")
+	flag.StringVar(&config.WatchListFile, "wl", "", "Specify a watchlist transaction history file (see README for format).")
+
+	flag.Parse()
+
 	fmt.Println("Loading portfolio...")
 
-	historyFile := os.Args[1]
-	p := portfolio.New(historyFile)
+	p := portfolio.New(config)
 	p.String()
 
 	fmt.Println("\nExamining recent news...\n")

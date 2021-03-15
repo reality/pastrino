@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/piquette/finance-go/equity"
+	"reality.rehab/pastrino/config"
 )
 
 type Portfolio struct {
@@ -56,11 +57,13 @@ func (s *Stonk) String() {
 
 // Here we load in the
 // TODO: To extend this to other sites, we will simply have to make different adapters
-func New(historyFile string) *Portfolio {
+func New(config *config.Config) *Portfolio {
 	p := &Portfolio{}
 	p.Stonks = make(map[string]*Stonk)
 
-	fillPortfoliofromT212(p, historyFile)
+	if config.T212File != "" {
+		fillPortfoliofromT212(p, config.T212File)
+	}
 
 	for _, v := range p.Stonks {
 		v.getValue()

@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	Feeds []string
+	Feeds         []string
+	T212File      string
+	WatchListFile string
 }
 
 func New(filePath string) *Config {
