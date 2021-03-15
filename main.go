@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"reality.rehab/pastrino/news"
@@ -40,10 +41,16 @@ func main() {
 		"https://www.cnbc.com/id/20409666/device/rss/rss.html?x=1",
 	}
 
+	fmt.Println("Loading portfolio...")
+
 	historyFile := os.Args[1]
 	p := portfolio.New(historyFile)
 	p.String()
 
+	fmt.Println("\nExamining recent news...\n")
+
 	ns := news.New()
 	ns.ParseNews(p, FEEDS)
+
+	ns.String()
 }

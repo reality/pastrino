@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/cdipaolo/sentiment"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
 	"reality.rehab/pastrino/portfolio"
@@ -13,12 +14,31 @@ type NewsSentiment struct {
 	newsentries []*NewsEntry
 }
 
+func (ns *NewsSentiment) String() {
+	for _, n := range ns.newsentries {
+		n.String()
+	}
+}
+
 type NewsEntry struct {
 	id        string
 	link      string
 	text      string
 	mentions  *portfolio.Stonk
-	sentiment float64
+	published string
+	sentiment uint8
+}
+
+func (n *NewsEntry) String() {
+	fmt.Printf("News story mentioning a stonk you own: \n")
+	fmt.Printf("\t%s\n", n.id)
+	fmt.Printf("\tMentions: %s\n", n.mentions.Name)
+	if n.published != "" {
+		fmt.Printf("\tPublished: %s\n", n.published)
+	}
+	fmt.Printf("\tSentiment: %d\n", n.sentiment)
+	fmt.Printf("\tLink: %s\n", n.link)
+	fmt.Println()
 }
 
 func New() *NewsSentiment {
@@ -29,6 +49,12 @@ func New() *NewsSentiment {
 
 func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, links []string) {
 	fp := gofeed.NewParser()
+
+	model, err := sentiment.Restore()
+	if err != nil {
+		panic(fmt.Sprintf("Could not restore sentiment analysis model!\n\t%v\n", err))
+	}
+
 	for _, l := range links {
 		feed, err := fp.ParseURL(l)
 		if err != nil {
@@ -45,18 +71,24 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, links []string) {
 				descMatches := nPattern.MatchString(text) || nPattern.MatchString(desc)
 				textMatches := tPattern.MatchString(text) || tPattern.MatchString(desc)
 				if descMatches || textMatches {
-					ns.newsentries = append(ns.newsentries, &NewsEntry{
-						id:       item.Title,
-						link:     item.Link,
-						text:     text,
-						mentions: s,
-					})
+					allText := desc + " . " + text
+					analysis := model.SentimentAnalysis(allText, sentiment.English)
 
-					fmt.Printf("News story mentioning a stonk you own: \n")
-					fmt.Printf("\t%s\n", item.Title)
-					fmt.Printf("\tMentions: %s\n", s.Name)
-					fmt.Printf("\tLink: %s\n", item.Link)
-					fmt.Println()
+					entry := &NewsEntry{
+						id:        item.Title,
+						link:      item.Link,
+						text:      text,
+						mentions:  s,
+						sentiment: analysis.Score,
+					}
+
+					if item.Published != "" {
+						entry.published = item.Published
+					} else if item.Updated != "" { // For some reason, Reddit seems to put the publish date in updated field
+						entry.published = item.Updated
+					}
+
+					ns.newsentries = append(ns.newsentries, entry)
 				}
 			}
 		}
