@@ -37,7 +37,7 @@ func main() {
 	p := portfolio.New(config)
 	p.String()
 
-	fmt.Println("\nExamining recent news...\n")
+	fmt.Println("\nExamining recent news...")
 
 	ns := news.New()
 	ns.ParseNews(p, config)

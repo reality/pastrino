@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/piquette/finance-go/equity"
 	"reality.rehab/pastrino/config"
@@ -28,6 +29,7 @@ type Stonk struct {
 	quantity float64
 	value    float64
 	currency string
+	Keywords []string
 	gotValue bool
 }
 
@@ -63,6 +65,9 @@ func New(config *config.Config) *Portfolio {
 
 	if config.T212File != "" {
 		fillPortfoliofromT212(p, config.T212File)
+	}
+	if config.WatchListFile != "" {
+		fillPortfoliofromWatchlist(p, config.WatchListFile)
 	}
 
 	for _, v := range p.Stonks {
@@ -122,5 +127,44 @@ func fillPortfoliofromT212(p *Portfolio, historyFile string) {
 		if v.quantity == 0 {
 			delete(p.Stonks, v.Ticker)
 		}
+	}
+}
+
+// TODO could probably abstract out the field-based parsing boilerplate
+func fillPortfoliofromWatchlist(p *Portfolio, watchFile string) {
+	file, err := os.Open(watchFile)
+	if err != nil {
+		fmt.Println("Could not load file", err)
+	}
+
+	r := csv.NewReader(file)
+	r.Comma = '\t'
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal("Could not parse TSV entry", err)
+		}
+		if record[0] == "Ticker" {
+			continue // header
+		}
+
+		stonk, ok := p.Stonks[record[0]]
+		if !ok {
+			stonk = &Stonk{
+				Ticker:   record[0],
+				Name:     record[1],
+				quantity: 0,
+				gotValue: false,
+			}
+			p.Stonks[record[0]] = stonk
+		}
+
+		if record[2] != "" {
+			stonk.Keywords = strings.Split(record[2], ",")
+		}
+
 	}
 }

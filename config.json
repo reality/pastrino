@@ -1,6 +1,7 @@
 {
   "feeds": [
 		"https://feeds.theguardian.com/theguardian/world/rss",
+    "https://www.theguardian.com/business/economics/rss",
 		"http://www.washingtonmonthly.com/rss2full_author.xml",
 		"https://www.businessinsider.com/rss?op=1&r=US&IR=T",
 		"https://www.globenewswire.com/RssFeed/orgclass/1/feedTitle/GlobeNewswire%20-%20News%20about%20Public%20Companies",

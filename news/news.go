@@ -49,6 +49,7 @@ func New() *NewsSentiment {
 }
 
 func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config) {
+	patterns := buildRegexen(p)
 	fp := gofeed.NewParser()
 
 	model, err := sentiment.Restore()
@@ -63,22 +64,23 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config
 		}
 
 		for _, item := range feed.Items {
-			desc := bluemonday.StrictPolicy().Sanitize(item.Description)
-			text := bluemonday.StrictPolicy().Sanitize(item.Content)
+			allText := item.Description + " . " + item.Content
+			allText = bluemonday.StrictPolicy().Sanitize(allText)
 			for _, s := range p.Stonks {
-				// TODO only copmile once
-				nPattern, _ := regexp.Compile(`(?i)\b` + s.Name + `\b`)
-				tPattern, _ := regexp.Compile(`(?i)\b` + s.Ticker + `\b`)
-				descMatches := nPattern.MatchString(text) || nPattern.MatchString(desc)
-				textMatches := tPattern.MatchString(text) || tPattern.MatchString(desc)
-				if descMatches || textMatches {
-					allText := desc + " . " + text
+				match := false
+				for _, rg := range patterns[s.Ticker] {
+					if !match {
+						match = rg.MatchString(allText)
+					}
+				}
+
+				if match {
 					analysis := model.SentimentAnalysis(allText, sentiment.English)
 
 					entry := &NewsEntry{
 						id:        item.Title,
 						link:      item.Link,
-						text:      text,
+						text:      allText,
 						mentions:  s,
 						sentiment: analysis.Score,
 					}
@@ -94,4 +96,38 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config
 			}
 		}
 	}
+}
+
+func buildRegexen(p *portfolio.Portfolio) map[string][]*regexp.Regexp {
+	m := make(map[string][]*regexp.Regexp)
+
+	for _, s := range p.Stonks {
+		rs := []*regexp.Regexp{}
+
+		tPattern, err := regexp.Compile(`(?i)\b` + s.Ticker + `\b`)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Printf("Failed to build match pattern from %s\n", s.Ticker)
+		}
+		nPattern, err := regexp.Compile(`(?i)\b` + s.Name + `\b`)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Printf("Failed to build match pattern from %s\n", s.Name)
+		}
+		rs = append(rs, tPattern)
+		rs = append(rs, nPattern)
+
+		for _, k := range s.Keywords {
+			kPattern, err := regexp.Compile(`(?i)\b` + k + `\b`)
+			if err != nil {
+				fmt.Println(err)
+				fmt.Printf("Failed to build match pattern from keyword %s\n", k)
+			}
+			rs = append(rs, kPattern)
+		}
+
+		m[s.Ticker] = rs
+	}
+
+	return m
 }
