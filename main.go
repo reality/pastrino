@@ -31,6 +31,13 @@ func main() {
 		"https://www.globenewswire.com/RssFeed/",
 		"https://www.globenewswire.com/RssFeed/country/United%20States/feedTitle/GlobeNewswire%20-%20News%20from%20United%20Statesa",
 		"https://www.cbsnews.com/latest/rss/moneywatch",
+		"http://feeds.marketwatch.com/marketwatch/topstories/",
+		"https://stockstotrade.com/blog/feed/",
+		"https://www.reddit.com/r/stocks/.rss",
+		"https://www.reddit.com/r/StockMarket/.rss",
+		"https://www.reddit.com/r/UKInvesting/.rss",
+		"http://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms",
+		"https://www.cnbc.com/id/20409666/device/rss/rss.html?x=1",
 	}
 
 	historyFile := os.Args[1]

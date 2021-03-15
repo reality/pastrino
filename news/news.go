@@ -42,8 +42,8 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, links []string) {
 				// TODO only copmile once
 				nPattern, _ := regexp.Compile(`(?i)\b` + s.Name + `\b`)
 				tPattern, _ := regexp.Compile(`(?i)\b` + s.Ticker + `\b`)
-				descMatches := nPattern.MatchString(desc) || nPattern.MatchString(text)
-				textMatches := tPattern.MatchString(desc) || tPattern.MatchString(text)
+				descMatches := nPattern.MatchString(text) || nPattern.MatchString(desc)
+				textMatches := tPattern.MatchString(text) || tPattern.MatchString(desc)
 				if descMatches || textMatches {
 					ns.newsentries = append(ns.newsentries, &NewsEntry{
 						id:       item.Title,
