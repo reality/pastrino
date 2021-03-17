@@ -12,39 +12,39 @@ import (
 )
 
 type NewsSentiment struct {
-	newsentries []*NewsEntry
+	NewsEntries []*NewsEntry
 }
 
 func (ns *NewsSentiment) String() {
-	for _, n := range ns.newsentries {
+	for _, n := range ns.NewsEntries {
 		n.String()
 	}
 }
 
 type NewsEntry struct {
-	id        string
-	link      string
+	Title     string
+	Link      string
 	text      string
-	mentions  *portfolio.Stonk
+	Mentions  *portfolio.Stonk
 	published string
-	sentiment uint8
+	Sentiment uint8
 }
 
 func (n *NewsEntry) String() {
 	fmt.Printf("News story mentioning a stonk you own: \n")
-	fmt.Printf("\t%s\n", n.id)
-	fmt.Printf("\tMentions: %s\n", n.mentions.Name)
+	fmt.Printf("\t%s\n", n.Title)
+	fmt.Printf("\tMentions: %s\n", n.Mentions.Name)
 	if n.published != "" {
 		fmt.Printf("\tPublished: %s\n", n.published)
 	}
-	fmt.Printf("\tSentiment: %d\n", n.sentiment)
-	fmt.Printf("\tLink: %s\n", n.link)
+	fmt.Printf("\tSentiment: %d\n", n.Sentiment)
+	fmt.Printf("\tLink: %s\n", n.Link)
 	fmt.Println()
 }
 
 func New() *NewsSentiment {
 	ns := &NewsSentiment{}
-	ns.newsentries = []*NewsEntry{}
+	ns.NewsEntries = []*NewsEntry{}
 	return ns
 }
 
@@ -54,7 +54,7 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config
 
 	model, err := sentiment.Restore()
 	if err != nil {
-		panic(fmt.Sprintf("Could not restore sentiment analysis model!\n\t%v\n", err))
+		panic(fmt.Sprintf("Could not restore Sentiment analysis model!\n\t%v\n", err))
 	}
 
 	for _, l := range config.Feeds {
@@ -78,11 +78,11 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config
 					analysis := model.SentimentAnalysis(allText, sentiment.English)
 
 					entry := &NewsEntry{
-						id:        item.Title,
-						link:      item.Link,
+						Title:     item.Title,
+						Link:      item.Link,
 						text:      allText,
-						mentions:  s,
-						sentiment: analysis.Score,
+						Mentions:  s,
+						Sentiment: analysis.Score,
 					}
 
 					if item.Published != "" {
@@ -91,7 +91,7 @@ func (ns *NewsSentiment) ParseNews(p *portfolio.Portfolio, config *config.Config
 						entry.published = item.Updated
 					}
 
-					ns.newsentries = append(ns.newsentries, entry)
+					ns.NewsEntries = append(ns.NewsEntries, entry)
 				}
 			}
 		}

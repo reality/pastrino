@@ -7,6 +7,7 @@ import (
 	"reality.rehab/pastrino/config"
 	"reality.rehab/pastrino/news"
 	"reality.rehab/pastrino/portfolio"
+	"reality.rehab/pastrino/tui"
 )
 
 func main() {
@@ -27,20 +28,25 @@ func main() {
 
 	config := config.New("./config.json")
 
+	var fancyInterface bool
+
 	flag.StringVar(&config.T212File, "t212", "", "Specify a Trading212 transaction history file.")
 	flag.StringVar(&config.WatchListFile, "wl", "", "Specify a watchlist transaction history file (see README for format).")
+	flag.BoolVar(&fancyInterface, "fi", false, "Use fancy terminal interface")
 
 	flag.Parse()
 
 	fmt.Println("Loading portfolio...")
-
 	p := portfolio.New(config)
-	p.String()
 
 	fmt.Println("\nExamining recent news...")
-
 	ns := news.New()
 	ns.ParseNews(p, config)
 
-	ns.String()
+	if fancyInterface {
+		tui.New(p, ns)
+	} else {
+		p.String()
+		ns.String()
+	}
 }

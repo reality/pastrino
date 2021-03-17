@@ -26,32 +26,32 @@ func (p *Portfolio) String() {
 type Stonk struct {
 	Ticker   string
 	Name     string
-	quantity float64
-	value    float64
-	currency string
+	Quantity float64
+	Value    float64
+	Currency string
 	Keywords []string
-	gotValue bool
+	GotValue bool
 }
 
 func (s *Stonk) getValue() {
 	q, err := equity.Get(s.Ticker)
 	if err != nil || q == nil {
-		fmt.Printf("Unable to get value for %s\n", s.Ticker)
+		fmt.Printf("Unable to get Value for %s\n", s.Ticker)
 	} else {
 		if q.RegularMarketPrice != 0 {
-			s.value = s.quantity * q.RegularMarketPrice
-			s.currency = q.CurrencyID
-			s.gotValue = true
+			s.Value = s.Quantity * q.RegularMarketPrice
+			s.Currency = q.CurrencyID
+			s.GotValue = true
 		}
 	}
 }
 
 func (s *Stonk) String() {
 	fmt.Printf("%s (%s): \n", s.Ticker, s.Name)
-	fmt.Printf("\tQuantity: %f\n", s.quantity)
+	fmt.Printf("\tQuantity: %f\n", s.Quantity)
 
-	if s.gotValue {
-		fmt.Printf("\tValue:    %f%s\n", s.value, s.currency)
+	if s.GotValue {
+		fmt.Printf("\tValue:    %f%s\n", s.Value, s.Currency)
 	} else {
 		fmt.Printf("\tValue:    No info found >:(\n")
 	}
@@ -105,26 +105,26 @@ func fillPortfoliofromT212(p *Portfolio, historyFile string) {
 			stonk = &Stonk{
 				Ticker:   record[3],
 				Name:     record[4],
-				quantity: 0,
-				gotValue: false,
+				Quantity: 0,
+				GotValue: false,
 			}
 			p.Stonks[record[3]] = stonk
 		}
 
-		quantity, err := strconv.ParseFloat(record[5], 64)
+		Quantity, err := strconv.ParseFloat(record[5], 64)
 
 		// by Action
 		switch record[0] {
 		case "Market buy":
-			stonk.quantity += quantity
+			stonk.Quantity += Quantity
 		case "Market sell":
-			stonk.quantity -= quantity
+			stonk.Quantity -= Quantity
 		}
 	}
 
 	// Purge the ones that were all sold
 	for _, v := range p.Stonks {
-		if v.quantity == 0 {
+		if v.Quantity == 0 {
 			delete(p.Stonks, v.Ticker)
 		}
 	}
@@ -156,8 +156,8 @@ func fillPortfoliofromWatchlist(p *Portfolio, watchFile string) {
 			stonk = &Stonk{
 				Ticker:   record[0],
 				Name:     record[1],
-				quantity: 0,
-				gotValue: false,
+				Quantity: 0,
+				GotValue: false,
 			}
 			p.Stonks[record[0]] = stonk
 		}
